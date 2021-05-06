@@ -79,8 +79,12 @@ export default merge(baseConfig, {
           {
             loader: 'css-loader',
             options: {
+              importLoaders: 1,
               sourceMap: true,
             },
+          },
+          {
+            loader: 'postcss-loader',
           },
           {
             loader: 'sass-loader',
@@ -96,6 +100,9 @@ export default merge(baseConfig, {
           },
           {
             loader: '@teamsupercell/typings-for-css-modules-loader',
+            options: {
+              disableLocalsExport: true,
+            }
           },
           {
             loader: 'css-loader',
@@ -106,6 +113,9 @@ export default merge(baseConfig, {
               sourceMap: true,
               importLoaders: 1,
             },
+          },
+          {
+            loader: 'postcss-loader',
           },
           {
             loader: 'sass-loader',
@@ -231,13 +241,13 @@ export default merge(baseConfig, {
     },
     before() {
       console.log('Starting Main Process...');
-        spawn('yarn', ['run', 'start:main'], {
-          shell: true,
-          env: process.env,
-          stdio: 'inherit',
-        })
-          .on('close', (code) => process.exit(code))
-          .on('error', (spawnError) => console.error(spawnError));
+      spawn('yarn', ['run', 'start:main'], {
+        shell: true,
+        env: process.env,
+        stdio: 'inherit',
+      })
+        .on('close', (code) => process.exit(code))
+        .on('error', (spawnError) => console.error(spawnError));
     },
   },
 });
