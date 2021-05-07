@@ -18,7 +18,7 @@ export default merge(baseConfig, {
   entry: [
     'core-js',
     'regenerator-runtime/runtime',
-    require.resolve('../sources/renderer.tsx'),
+    require.resolve('../sources/renderer/index.tsx'),
   ],
 
   output: {

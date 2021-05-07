@@ -11,8 +11,22 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import { app, BrowserWindow } from 'electron';
+import path from "path";
+import { ffmpegPath, ffprobePath } from "ffmpeg-ffprobe-static";
+import Ffmpeg from "fluent-ffmpeg";
+import Db from "./Datastore";
+import VideoMetadataReader from "./VideoMetadataReader";
+
+Ffmpeg.setFfmpegPath(ffmpegPath as string);
+Ffmpeg.setFfprobePath(ffprobePath as string);
 
 let mainWindow: BrowserWindow | null = null;
+
+console.log(ffprobePath);
+
+Ffmpeg.ffprobe(path.resolve(__dirname, "../test.mp4"), function (err, metadata) {
+  console.dir(metadata);
+});
 
 const createWindow = async () => {
   mainWindow = new BrowserWindow({
@@ -58,7 +72,12 @@ app.on('window-all-closed', () => {
   }
 });
 
-app.whenReady().then(createWindow).catch(console.log);
+app.whenReady().then(() => {
+  Db.load().then(() => console.log('nedb loaded'));
+  console.log(path.resolve(__dirname, "../../test.mp4"));
+  VideoMetadataReader.read(path.resolve(__dirname, "../../test.mp4")).then(data => console.log(data)).catch(err => console.log(err));
+  createWindow();
+}).catch(console.log);
 
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the

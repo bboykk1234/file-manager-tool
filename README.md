@@ -8,3 +8,6 @@
 ```
 "postinstall": "NO_UPDATE_NOTIFIER=1 electron-builder install-app-deps"
 ```
+
+## TODO
+- Production build

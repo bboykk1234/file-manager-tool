@@ -20,7 +20,7 @@
 
    target: 'electron-main',
 
-   entry: './sources/main.ts',
+   entry: './sources/main/index.ts',
 
    output: {
      path: path.join(__dirname, '../build'),
