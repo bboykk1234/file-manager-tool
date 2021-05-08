@@ -10,23 +10,13 @@
  */
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
-import { app, BrowserWindow } from 'electron';
-import path from "path";
-import { ffmpegPath, ffprobePath } from "ffmpeg-ffprobe-static";
-import Ffmpeg from "fluent-ffmpeg";
+import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import Db from "./Datastore";
-import VideoMetadataReader from "./VideoMetadataReader";
-
-Ffmpeg.setFfmpegPath(ffmpegPath as string);
-Ffmpeg.setFfprobePath(ffprobePath as string);
+import path from "path";
+import VideoProcessor from "./VideoProcessor";
+import { readdirSync } from 'fs';
 
 let mainWindow: BrowserWindow | null = null;
-
-console.log(ffprobePath);
-
-Ffmpeg.ffprobe(path.resolve(__dirname, "../test.mp4"), function (err, metadata) {
-  console.dir(metadata);
-});
 
 const createWindow = async () => {
   mainWindow = new BrowserWindow({
@@ -74,8 +64,6 @@ app.on('window-all-closed', () => {
 
 app.whenReady().then(() => {
   Db.load().then(() => console.log('nedb loaded'));
-  console.log(path.resolve(__dirname, "../../test.mp4"));
-  VideoMetadataReader.read(path.resolve(__dirname, "../../test.mp4")).then(data => console.log(data)).catch(err => console.log(err));
   createWindow();
 }).catch(console.log);
 
@@ -83,4 +71,35 @@ app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) createWindow();
+});
+
+ipcMain.on('read-files-metadata', async (event) => {
+  if (mainWindow === null) {
+    return;
+  }
+
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory']
+  });
+
+  const videoProcessor = VideoProcessor.read("/home/davidtan/Downloads/test.mp4");
+  const metadata = await videoProcessor.getMetadata();
+  try {
+    await videoProcessor.takeMosaicScreenshot();
+  } catch (err) {
+    console.log(err);
+  }
+
+  // result?.filePaths?.forEach((filePath) => {
+  //   readdirSync(filePath).forEach(async (file) => {
+  //     if (!file.endsWith(".mp4")) {
+  //       return;
+  //     }
+
+  //     const filename = path.join(filePath, file);
+
+  //     console.log(metadata);
+  //     event.reply('read-files-metadata-chunk-finished', file);
+  //   });
+  // });
 });
