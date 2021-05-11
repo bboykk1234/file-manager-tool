@@ -14,7 +14,9 @@ import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import Db from "./Datastore";
 import path from "path";
 import VideoProcessor from "./VideoProcessor";
-import { readdirSync } from 'fs';
+import { readdirSync, statSync, unlinkSync } from 'fs';
+import Video from './Video';
+import CloudImageStorage from './CloudImageStorage';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -82,24 +84,49 @@ ipcMain.on('read-files-metadata', async (event) => {
     properties: ['openDirectory']
   });
 
-  const videoProcessor = VideoProcessor.read("/home/davidtan/Downloads/test.mp4");
-  const metadata = await videoProcessor.getMetadata();
-  try {
-    await videoProcessor.takeMosaicScreenshot();
-  } catch (err) {
-    console.log(err);
+  const readVideoFilesFromDir = async (dir: string) => {
+    const filesFromDir = readdirSync(dir);
+
+    for (const file of filesFromDir) {
+      const filename = path.join(dir, file);
+      if (statSync(filename).isDirectory()) {
+        console.log("Directory: " + filename);
+        await readVideoFilesFromDir(filename);
+      }
+
+      if (!(file.endsWith(".mp4") || file.endsWith(".mkv"))) {
+        console.log("Not video file, next...");
+        continue;
+      }
+      const processor = new VideoProcessor(filename);
+      const video = new Video(processor);
+
+      let message = {
+        status: true,
+        reason: null,
+        file,
+      };
+
+      const outputFile = Date.now().toString();
+      const sourceKey = `test/${outputFile}`;
+
+      try {
+        console.log("Before taking screen shot for: " + filename);
+        const outputPath = await video.takeMosaicScreenshot(outputFile);
+        console.log("Upstream: " + outputPath);
+        const uploadResult = await CloudImageStorage.upload(outputPath, sourceKey);
+        unlinkSync(outputPath);
+        console.log("Unlinked: " + outputPath);
+      } catch (err) {
+        message.status = false;
+        message.reason = err;
+      }
+
+      event.reply('read-files-metadata-chunk-finished', message);
+    }
+  };
+
+  for (const dir of result.filePaths) {
+    await readVideoFilesFromDir(dir);
   }
-
-  // result?.filePaths?.forEach((filePath) => {
-  //   readdirSync(filePath).forEach(async (file) => {
-  //     if (!file.endsWith(".mp4")) {
-  //       return;
-  //     }
-
-  //     const filename = path.join(filePath, file);
-
-  //     console.log(metadata);
-  //     event.reply('read-files-metadata-chunk-finished', file);
-  //   });
-  // });
 });

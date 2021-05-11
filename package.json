@@ -77,6 +77,7 @@
     "webpack-merge": "^5.7.3"
   },
   "dependencies": {
+    "cloudinary": "^1.25.1",
     "ffmpeg-ffprobe-static": "^4.3.1-rc.6",
     "fluent-ffmpeg": "^2.1.2",
     "nedb-promises": "^4.1.3",

@@ -16,6 +16,9 @@
 .output(path.join(__dirname, "../../screenshots/test.jpg")); // Must be absolute path in order to solve this error
 because default ffmpeg doesn't know the current working directory
 Ffmpeg({cwd: __dirname}); // I think should also solve this error
+
+- await doesn't work in map, forEach
+https://medium.com/@patarkf/synchronize-your-asynchronous-code-using-javascripts-async-await-5f3fa5b1366d
 ```
 
 ## TODO
