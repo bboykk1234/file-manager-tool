@@ -1,11 +1,17 @@
 import VideoProcessor from "./VideoProcessor";
 import path from "path";
+import tempy from "tempy";
 
 export interface Metadata {
   width: number,
   height: number,
   numOfFrame: number,
   durationInSec: number,
+}
+
+interface ScreenshotOptions {
+  customOutput?: string,
+  outputExtension: "jpg" | "png"
 }
 
 const defaultMosaicScreenshotOptions = {
@@ -33,7 +39,7 @@ export default class Video {
     }
   }
 
-  async takeMosaicScreenshot(outputFilename: string) : Promise<string> {
+  async takeMosaicScreenshot(options: ScreenshotOptions = { outputExtension: "jpg" }): Promise<string> {
     const { tile, scale } = defaultMosaicScreenshotOptions;
     const tileArea = tile.x * tile.y;
 
@@ -42,7 +48,10 @@ export default class Video {
       throw new Error("Video number of frame less than the default options.");
     }
     const everyNSec = Math.floor(this.metadata.durationInSec / tileArea);
-    const output = path.join(__dirname, `../../screenshots/${outputFilename}.jpg`);
+    const { customOutput, outputExtension } = options;
+    const output = customOutput
+      ? `${customOutput}.${outputExtension}`
+      : tempy.file({ extension: outputExtension });
 
     return this.processor.takeMosaicScreenshot(output, everyNSec, scale, tile);
   }

@@ -6,7 +6,7 @@ import indexStyles from './index.scss';
 
 render(
   <>
-    <p className={`${indexStyles.textRed} mt-10`}>Hello World!</p>
+    <p className={`${indexStyles.textRed} mt-10`}>Scan media files:</p>
     <App />
   </>,
   document.getElementById('root')

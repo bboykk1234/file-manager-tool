@@ -19,6 +19,9 @@ Ffmpeg({cwd: __dirname}); // I think should also solve this error
 
 - await doesn't work in map, forEach
 https://medium.com/@patarkf/synchronize-your-asynchronous-code-using-javascripts-async-await-5f3fa5b1366d
+
+- Fixed development, app data is 'Electron' instead of my app name
+https://github.com/electron/electron/issues/3391
 ```
 
 ## TODO

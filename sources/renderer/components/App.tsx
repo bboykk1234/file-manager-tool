@@ -34,15 +34,6 @@ export default class App extends React.Component<{}, {}> {
   render() {
     return (
       <>
-        <input
-          type="file"
-          name="folder-selector"
-          id="folder-selector"
-          onChange={this.handleFolderSelection}
-          /* @ts-expect-error */
-          directory=""
-          webkitdirectory=""
-        />
         <input type="button" value="Select folder" onClick={this.listenFinishedReadFilesMetadata} />
       </>
     );

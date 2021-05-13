@@ -2,5 +2,12 @@ import { app } from "electron";
 import Datastore from 'nedb-promises';
 import path from "path";
 
-const filename = path.join(app.getPath("userData"), "media.nedb");
-export default new Datastore({ filename, autoload: true });
+const appDataPath = app.getPath("userData");
+console.log(appDataPath);
+const getFilename = (file: string) => path.join(appDataPath, `${file}.nedb`);
+
+let db = {
+  video: new Datastore({ filename: getFilename("videos"), autoload: true }),
+};
+
+export default db;

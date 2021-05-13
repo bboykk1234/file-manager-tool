@@ -11,12 +11,27 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
-import Db from "./Datastore";
+import db from "./Datastore";
 import path from "path";
 import VideoProcessor from "./VideoProcessor";
 import { readdirSync, statSync, unlinkSync } from 'fs';
 import Video from './Video';
 import CloudImageStorage from './CloudImageStorage';
+import { v4 as uuidv4 } from "uuid";
+import { UploadApiResponse } from 'cloudinary';
+
+type CustomVideoFileDocument = {
+  originalLocation: string,
+  screenshotId: string,
+};
+
+type VideoFileDocument = CustomVideoFileDocument & UploadApiResponse;
+
+type VideoDocument = {
+  originalTitle: string,
+  lowerCasedTitle: string,
+  files: VideoFileDocument[],
+};
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -65,7 +80,6 @@ app.on('window-all-closed', () => {
 });
 
 app.whenReady().then(() => {
-  Db.load().then(() => console.log('nedb loaded'));
   createWindow();
 }).catch(console.log);
 
@@ -89,6 +103,14 @@ ipcMain.on('read-files-metadata', async (event) => {
 
     for (const file of filesFromDir) {
       const filename = path.join(dir, file);
+      const dirParts = dir.split(path.sep);
+      const lastDir = dirParts.pop();
+
+      if (lastDir === undefined) {
+        console.log("File doesn't store in a folder!");
+        continue;
+      }
+
       if (statSync(filename).isDirectory()) {
         console.log("Directory: " + filename);
         await readVideoFilesFromDir(filename);
@@ -100,26 +122,65 @@ ipcMain.on('read-files-metadata', async (event) => {
       }
       const processor = new VideoProcessor(filename);
       const video = new Video(processor);
+      const screenshotId = uuidv4();
+      const sourceKey = `pictures/screenshots/${screenshotId}`;
+      const videoTitle = lastDir;
+      let docFound = true;
 
+      let videoDoc = await db.video.findOne<VideoDocument>({ originalTitle: videoTitle, lowerCasedTitle: videoTitle.toLowerCase() });
+
+      if (!videoDoc) {
+        docFound = false;
+        videoDoc = {
+          _id: uuidv4(),
+          originalTitle: videoTitle,
+          lowerCasedTitle: videoTitle.toLowerCase(),
+          files: [],
+        };
+      }
+
+      let tempOutputPath = null;
       let message = {
         status: true,
         reason: null,
         file,
       };
 
-      const outputFile = Date.now().toString();
-      const sourceKey = `test/${outputFile}`;
-
       try {
-        console.log("Before taking screen shot for: " + filename);
-        const outputPath = await video.takeMosaicScreenshot(outputFile);
-        console.log("Upstream: " + outputPath);
-        const uploadResult = await CloudImageStorage.upload(outputPath, sourceKey);
-        unlinkSync(outputPath);
-        console.log("Unlinked: " + outputPath);
+        tempOutputPath = await video.takeMosaicScreenshot();
+        console.log("Screenshot temp output path: " + tempOutputPath);
+        const uploadResult = await CloudImageStorage.upload(tempOutputPath, sourceKey);
+        videoDoc.files.push({
+          ...uploadResult,
+          originalLocation: filename,
+          screenshotId,
+        });
+
+        if (docFound) {
+          db.video.update({_id: videoDoc._id}, videoDoc)
+            .then(updatedDoc => {
+              console.log(`Document updated: ${updatedDoc}`);
+            })
+            .catch(err => {
+              console.log(`Document failed to create, reason: ${err}`);
+            });
+        } else {
+          db.video.insert(videoDoc)
+            .then(newDoc => {
+              console.log(`New document created: ${newDoc}`);
+            })
+            .catch(err => {
+              console.log(`Document failed to create, reason: ${err}`);
+            });
+        }
       } catch (err) {
         message.status = false;
         message.reason = err;
+      } finally {
+        if (tempOutputPath !== null) {
+          unlinkSync(tempOutputPath);
+          console.log("Unlinked: " + tempOutputPath);
+        }
       }
 
       event.reply('read-files-metadata-chunk-finished', message);
