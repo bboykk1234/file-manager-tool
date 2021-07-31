@@ -22,6 +22,9 @@ https://medium.com/@patarkf/synchronize-your-asynchronous-code-using-javascripts
 
 - Fixed development, app data is 'Electron' instead of my app name
 https://github.com/electron/electron/issues/3391
+
+- libva error: /usr/lib/x86_64-linux-gnu/dri/iHD_drv_video.so init failed
+Solved by setting enviroment variable `export LIBVA_DRIVER_NAME=i965`
 ```
 
 ## TODO

@@ -1,8 +1,7 @@
 import path from 'path';
-import fs from 'fs';
 import webpack from 'webpack';
 import { merge } from 'webpack-merge';
-import { spawn, execSync } from 'child_process';
+import { spawn } from 'child_process';
 import baseConfig from './webpack.config.base';
 
 const port = process.env.PORT || 1212;
