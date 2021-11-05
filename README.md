@@ -28,6 +28,11 @@ https://github.com/electron/electron/issues/3391
 
 - libva error: /usr/lib/x86_64-linux-gnu/dri/iHD_drv_video.so init failed
 Solved by setting enviroment variable `export LIBVA_DRIVER_NAME=i965`
+
+- Upgraded to electron 15.3.0 before, but faced this error
+InitializeSandbox() called with multiple threads in process gpu-process
+https://github.com/electron/electron/issues/31491
+Temporary solution: revert to 13.6.1
 ```
 
 ## TODO
