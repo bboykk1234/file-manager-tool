@@ -11,26 +11,26 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
-import db from "./Datastore";
-import path from "path";
-import VideoProcessor from "./VideoProcessor";
+import db from './Datastore';
+import path from 'path';
+import VideoProcessor from './VideoProcessor';
 import { readdirSync, statSync, unlinkSync } from 'fs';
 import Video from './Video';
 import CloudImageStorage from './CloudImageStorage';
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from 'uuid';
 import { UploadApiResponse } from 'cloudinary';
 
 type CustomVideoFileDocument = {
-  originalLocation: string,
-  screenshotId: string,
+  originalLocation: string;
+  screenshotId: string;
 };
 
 type VideoFileDocument = CustomVideoFileDocument & UploadApiResponse;
 
 type VideoDocument = {
-  originalTitle: string,
-  lowerCasedTitle: string,
-  files: VideoFileDocument[],
+  originalTitle: string;
+  lowerCasedTitle: string;
+  files: VideoFileDocument[];
 };
 
 let mainWindow: BrowserWindow | null = null;
@@ -79,9 +79,12 @@ app.on('window-all-closed', () => {
   }
 });
 
-app.whenReady().then(() => {
-  createWindow();
-}).catch(console.log);
+app
+  .whenReady()
+  .then(() => {
+    createWindow();
+  })
+  .catch(console.log);
 
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
@@ -89,13 +92,13 @@ app.on('activate', () => {
   if (mainWindow === null) createWindow();
 });
 
-ipcMain.on('read-files-metadata', async (event) => {
+ipcMain.on('read-files-metadata', async event => {
   if (mainWindow === null) {
     return;
   }
 
   const result = await dialog.showOpenDialog(mainWindow, {
-    properties: ['openDirectory']
+    properties: ['openDirectory'],
   });
 
   const readVideoFilesFromDir = async (dir: string) => {
@@ -112,12 +115,12 @@ ipcMain.on('read-files-metadata', async (event) => {
       }
 
       if (statSync(filename).isDirectory()) {
-        console.log("Directory: " + filename);
+        console.log('Directory: ' + filename);
         await readVideoFilesFromDir(filename);
       }
 
-      if (!(file.endsWith(".mp4") || file.endsWith(".mkv"))) {
-        console.log("Not video file, next...");
+      if (!(file.endsWith('.mp4') || file.endsWith('.mkv'))) {
+        console.log('Not video file, next...');
         continue;
       }
       const processor = new VideoProcessor(filename);
@@ -127,7 +130,10 @@ ipcMain.on('read-files-metadata', async (event) => {
       const videoTitle = lastDir;
       let docFound = true;
 
-      let videoDoc = await db.video.findOne<VideoDocument>({ originalTitle: videoTitle, lowerCasedTitle: videoTitle.toLowerCase() });
+      let videoDoc = await db.video.findOne<VideoDocument>({
+        originalTitle: videoTitle,
+        lowerCasedTitle: videoTitle.toLowerCase(),
+      });
 
       if (!videoDoc) {
         docFound = false;
@@ -148,8 +154,11 @@ ipcMain.on('read-files-metadata', async (event) => {
 
       try {
         tempOutputPath = await video.takeMosaicScreenshot();
-        console.log("Screenshot temp output path: " + tempOutputPath);
-        const uploadResult = await CloudImageStorage.upload(tempOutputPath, sourceKey);
+        console.log('Screenshot temp output path: ' + tempOutputPath);
+        const uploadResult = await CloudImageStorage.upload(
+          tempOutputPath,
+          sourceKey
+        );
         videoDoc.files.push({
           ...uploadResult,
           originalLocation: filename,
@@ -157,7 +166,8 @@ ipcMain.on('read-files-metadata', async (event) => {
         });
 
         if (docFound) {
-          db.video.update({_id: videoDoc._id}, videoDoc)
+          db.video
+            .update({ _id: videoDoc._id }, videoDoc)
             .then(updatedDoc => {
               console.log(`Document updated: ${updatedDoc}`);
             })
@@ -165,7 +175,8 @@ ipcMain.on('read-files-metadata', async (event) => {
               console.log(`Document failed to create, reason: ${err}`);
             });
         } else {
-          db.video.insert(videoDoc)
+          db.video
+            .insert(videoDoc)
             .then(newDoc => {
               console.log(`New document created: ${newDoc}`);
             })
@@ -179,7 +190,7 @@ ipcMain.on('read-files-metadata', async (event) => {
       } finally {
         if (tempOutputPath !== null) {
           unlinkSync(tempOutputPath);
-          console.log("Unlinked: " + tempOutputPath);
+          console.log('Unlinked: ' + tempOutputPath);
         }
       }
 

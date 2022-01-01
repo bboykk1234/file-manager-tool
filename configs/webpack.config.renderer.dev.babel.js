@@ -101,7 +101,7 @@ export default merge(baseConfig, {
             loader: '@teamsupercell/typings-for-css-modules-loader',
             options: {
               disableLocalsExport: true,
-            }
+            },
           },
           {
             loader: 'css-loader',
@@ -189,7 +189,6 @@ export default merge(baseConfig, {
     ],
   },
   plugins: [
-
     new webpack.NoEmitOnErrorsPlugin(),
 
     /**
@@ -238,15 +237,21 @@ export default merge(baseConfig, {
       verbose: true,
       disableDotRule: false,
     },
-    onBeforeSetupMiddleware() {
+    setupMiddlewares: (middlewares, devServer) => {
+      if (!devServer) {
+        throw new Error('webpack-dev-server is not defined');
+      }
+
       console.log('Starting Main Process...');
       spawn('yarn', ['run', 'start:main'], {
         shell: true,
         env: process.env,
         stdio: 'inherit',
       })
-        .on('close', (code) => process.exit(code))
-        .on('error', (spawnError) => console.error(spawnError));
+        .on('close', code => process.exit(code))
+        .on('error', spawnError => console.error(spawnError));
+
+      return middlewares;
     },
   },
 });

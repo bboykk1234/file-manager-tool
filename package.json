@@ -11,7 +11,11 @@
     "postinstall": "NO_UPDATE_NOTIFIER=1 electron-builder install-app-deps",
     "start": "yarn start:renderer",
     "start:main": "cross-env NODE_ENV=development electron -r ./scripts/BabelRegister ./sources/main/index.ts",
-    "start:renderer": "cross-env NODE_ENV=development webpack serve --config ./configs/webpack.config.renderer.dev.babel.js"
+    "start:renderer": "cross-env NODE_ENV=development webpack serve --config ./configs/webpack.config.renderer.dev.babel.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky install",
+    "pre-commit": "lint-staged"
   },
   "devDependencies": {
     "@babel/core": "^7.14.5",
@@ -58,16 +62,21 @@
     "electron-builder": "^22.11.7",
     "eslint": "^7.32.0",
     "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.23.4",
     "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react": "^7.24.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "file-loader": "^6.2.0",
+    "husky": "^7.0.4",
+    "lint-staged": "^12.1.4",
     "node-sass": "^6.0.1",
     "postcss": "^8.3.6",
     "postcss-import": "^14.0.2",
     "postcss-loader": "^6.2.0",
     "postcss-preset-env": "^6.7.0",
+    "prettier": "2.5.1",
     "sass-loader": "^12.3.0",
     "style-loader": "^3.3.1",
     "tailwindcss": "^2.2.7",
@@ -92,5 +101,10 @@
     "regenerator-runtime": "^0.13.7",
     "tempy": "^1.0.1",
     "uuid": "^8.3.2"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,scss}": [
+      "prettier --write"
+    ]
   }
 }

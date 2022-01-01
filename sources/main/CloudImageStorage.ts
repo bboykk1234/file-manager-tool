@@ -1,4 +1,4 @@
-import * as Cloudinary from "cloudinary";
+import * as Cloudinary from 'cloudinary';
 
 Cloudinary.v2.config({
   cloud_name: 'bboykk1234',
@@ -9,12 +9,17 @@ Cloudinary.v2.config({
 const { uploader, url } = Cloudinary.v2;
 
 export default class CloudImageStorage {
-  static upload(from: string, to: string): Promise<Cloudinary.UploadApiResponse> {
+  static upload(
+    from: string,
+    to: string
+  ): Promise<Cloudinary.UploadApiResponse> {
     return new Promise((resolve, reject) => {
-      uploader.upload(from, {
-        type: "authenticated",
-        public_id: to,
-      },
+      uploader.upload(
+        from,
+        {
+          type: 'authenticated',
+          public_id: to,
+        },
         (err, result) => {
           if (err) {
             reject(err);
@@ -26,8 +31,9 @@ export default class CloudImageStorage {
             return;
           }
 
-          reject("Something went wrong!!");
-        });
+          reject('Something went wrong!!');
+        }
+      );
     });
   }
 
@@ -36,7 +42,7 @@ export default class CloudImageStorage {
       sign_url: true,
       secure: true,
       version,
-      type: "authenticated",
+      type: 'authenticated',
     });
   }
 }

@@ -1,17 +1,17 @@
-import VideoProcessor from "./VideoProcessor";
-import path from "path";
-import tempy from "tempy";
+import VideoProcessor from './VideoProcessor';
+import path from 'path';
+import tempy from 'tempy';
 
 export interface Metadata {
-  width: number,
-  height: number,
-  numOfFrame: number,
-  durationInSec: number,
+  width: number;
+  height: number;
+  numOfFrame: number;
+  durationInSec: number;
 }
 
 interface ScreenshotOptions {
-  customOutput?: string,
-  outputExtension: "jpg" | "png"
+  customOutput?: string;
+  outputExtension: 'jpg' | 'png';
 }
 
 const defaultMosaicScreenshotOptions = {
@@ -22,8 +22,8 @@ const defaultMosaicScreenshotOptions = {
   scale: {
     width: 480,
     height: -1, // Keep aspect ratio height based on provided width
-  }
-}
+  },
+};
 
 export default class Video {
   processor: VideoProcessor;
@@ -39,13 +39,15 @@ export default class Video {
     }
   }
 
-  async takeMosaicScreenshot(options: ScreenshotOptions = { outputExtension: "jpg" }): Promise<string> {
+  async takeMosaicScreenshot(
+    options: ScreenshotOptions = { outputExtension: 'jpg' }
+  ): Promise<string> {
     const { tile, scale } = defaultMosaicScreenshotOptions;
     const tileArea = tile.x * tile.y;
 
     await this.readMetadata();
     if (tileArea >= this.metadata.durationInSec) {
-      throw new Error("Video number of frame less than the default options.");
+      throw new Error('Video number of frame less than the default options.');
     }
     const everyNSec = Math.floor(this.metadata.durationInSec / tileArea);
     const { customOutput, outputExtension } = options;
